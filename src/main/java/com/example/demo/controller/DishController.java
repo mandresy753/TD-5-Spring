@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.DishDTO;
+import com.example.demo.entity.IngredientDTO;
+import com.example.demo.exception.DishNotFoundException;
 import com.example.demo.service.DishService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,5 +23,28 @@ public class DishController {
     @GetMapping
     public ResponseEntity<List<DishDTO>> getDishes() {
         return ResponseEntity.status(HttpStatus.OK).body(dishService.getDishes());
+    }
+
+    @PutMapping("/{id}/ingredients")
+    public ResponseEntity<?> updateDishIngredients(
+            @PathVariable int id,
+            @RequestBody(required = false) List<IngredientDTO> ingredients) {
+
+        try {
+            if (ingredients == null) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body("Request body is required");
+            }
+
+            dishService.updateDishIngredients(id, ingredients);
+
+            return ResponseEntity.ok("Dish ingredients updated");
+
+        } catch (DishNotFoundException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
     }
 }

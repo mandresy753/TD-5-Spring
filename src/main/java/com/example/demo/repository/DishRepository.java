@@ -69,4 +69,90 @@ public class DishRepository {
 
         return new ArrayList<>(dishMap.values());
     }
+
+    public boolean existsDishById(int id) {
+        String sql = "SELECT 1 FROM dish WHERE id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Set<Integer> findExistingIngredientIds(List<Integer> ids) {
+        if (ids.isEmpty()) return new HashSet<>();
+
+        String sql = "SELECT id FROM ingredient WHERE id = ANY (?)";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            Array array = conn.createArrayOf("int4", ids.toArray());
+            ps.setArray(1, array);
+
+            ResultSet rs = ps.executeQuery();
+
+            Set<Integer> result = new HashSet<>();
+            while (rs.next()) {
+                result.add(rs.getInt("id"));
+            }
+            return result;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Set<Integer> findIngredientIdsByDishId(int dishId) {
+        String sql = "SELECT id_ingredient FROM dish_ingredient WHERE id_dish = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, dishId);
+            ResultSet rs = ps.executeQuery();
+
+            Set<Integer> result = new HashSet<>();
+            while (rs.next()) {
+                result.add(rs.getInt("id_ingredient"));
+            }
+            return result;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addIngredientToDish(int dishId, int ingredientId) {
+        String sql = "INSERT INTO dish_ingredient(id_dish, id_ingredient) VALUES (?, ?)";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, dishId);
+            ps.setInt(2, ingredientId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void removeIngredientFromDish(int dishId, int ingredientId) {
+        String sql = "DELETE FROM dish_ingredient WHERE id_dish = ? AND id_ingredient = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, dishId);
+            ps.setInt(2, ingredientId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
