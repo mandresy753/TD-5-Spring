@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.entity.Ingredient;
 import com.example.demo.entity.IngredientDTO;
+import com.example.demo.exception.IngredientNotFoundException;
 import com.example.demo.repository.IngredientRepository;
 import org.springframework.stereotype.Service;
 
@@ -19,4 +20,12 @@ public class IngredientService {
     public List<IngredientDTO> getIngredients(int page, int size) {
         return ingredientRepository.findIngredients(page, size);
     }
+    public IngredientDTO getIngredientById(int id) throws IngredientNotFoundException {
+        IngredientDTO ingredient = ingredientRepository.findIngredientsById(id);
+        if (ingredient.getId() == null) {
+            throw new IngredientNotFoundException(id);
+        }
+        return ingredient;
+    }
+
 }

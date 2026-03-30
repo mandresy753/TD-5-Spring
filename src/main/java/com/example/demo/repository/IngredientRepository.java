@@ -58,4 +58,41 @@ public class IngredientRepository {
 
         return ingredients;
     }
+
+    public IngredientDTO findIngredientsById(int id) {
+        String sql = """
+            SELECT id, name, price, category
+            FROM ingredient
+            WHERE id = ?
+            """;
+
+        IngredientDTO  ingredient = new IngredientDTO();
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String categoryStr = rs.getString("category");
+                    CategoryEnum category = (categoryStr != null) ? CategoryEnum.valueOf(categoryStr) : null;
+
+
+                    IngredientDTO ing = new IngredientDTO();
+                    ing.setId(rs.getInt("id"));
+                    ing.setName(rs.getString("name"));
+                    ing.setCategory(category);
+                    ing.setPrice(rs.getBigDecimal("price"));
+
+                    ingredient = ing;
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la récupération des ingrédients", e);
+        }
+
+        return ingredient;
+    }
 }
