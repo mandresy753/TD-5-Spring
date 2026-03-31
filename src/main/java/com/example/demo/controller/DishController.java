@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -45,6 +46,21 @@ public class DishController {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/ingredients")
+    public ResponseEntity<?> getIngredientsByDishWithFilters(
+            @PathVariable int id,
+            @RequestParam(required = false) String ingredientName,
+            @RequestParam(required = false) BigDecimal ingredientPriceAround) {
+
+        try {
+            List<IngredientDTO> ingredients =
+                    dishService.getIngredientsByDishWithFilters(id, ingredientName, ingredientPriceAround);
+            return ResponseEntity.ok(ingredients);
+        } catch (DishNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }

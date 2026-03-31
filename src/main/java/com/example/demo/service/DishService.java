@@ -6,6 +6,7 @@ import com.example.demo.exception.DishNotFoundException;
 import com.example.demo.repository.DishRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,5 +53,17 @@ public class DishService {
         for (Integer id : toRemove) {
             dishRepository.removeIngredientFromDish(dishId, id);
         }
+    }
+
+    public List<IngredientDTO> getIngredientsByDishWithFilters(
+            int dishId, String ingredientName, BigDecimal ingredientPriceAround) {
+
+        List<IngredientDTO> ingredients =
+                dishRepository.findIngredientsByDishIdWithFilters(dishId, ingredientName, ingredientPriceAround);
+
+        if (ingredients == null) {
+            throw new DishNotFoundException(dishId);
+        }
+        return ingredients;
     }
 }

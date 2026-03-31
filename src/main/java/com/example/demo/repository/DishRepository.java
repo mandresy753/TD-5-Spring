@@ -6,6 +6,7 @@ import com.example.demo.enums.CategoryEnum;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 
@@ -154,5 +155,71 @@ public class DishRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<IngredientDTO> findIngredientsByDishIdWithFilters(
+            int dishId, String ingredientName, BigDecimal ingredientPriceAround) {
+
+        if (!existsDishById(dishId)) {
+            throw new RuntimeException("Dish.id=" + dishId + " is not found");
+        }
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT i.id, i.name, i.price, i.category
+        FROM ingredient i
+        JOIN dish_ingredient di ON i.id = di.id_ingredient
+        WHERE di.id_dish = ?
+    """);
+
+        List<Object> params = new ArrayList<>();
+        params.add(dishId);
+
+        if (ingredientName != null && !ingredientName.isBlank()) {
+            sql.append(" AND i.name ILIKE ?");
+            params.add("%" + ingredientName + "%");
+        }
+
+        if (ingredientPriceAround != null) {
+            sql.append(" AND i.price BETWEEN ? AND ?");
+            params.add(ingredientPriceAround.subtract(BigDecimal.valueOf(50)));
+            params.add(ingredientPriceAround.add(BigDecimal.valueOf(50)));
+        }
+
+        List<IngredientDTO> ingredients = new ArrayList<>();
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                Object param = params.get(i);
+                if (param instanceof String s) {
+                    ps.setString(i + 1, s);
+                } else if (param instanceof BigDecimal bd) {
+                    ps.setBigDecimal(i + 1, bd);
+                } else if (param instanceof Integer n) {
+                    ps.setInt(i + 1, n);
+                }
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                IngredientDTO ing = new IngredientDTO();
+                ing.setId(rs.getInt("id"));
+                ing.setName(rs.getString("name"));
+                ing.setPrice(rs.getBigDecimal("price"));
+
+                String categoryStr = rs.getString("category");
+                if (categoryStr != null) {
+                    ing.setCategory(CategoryEnum.valueOf(categoryStr));
+                }
+
+                ingredients.add(ing);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur récupération ingredients du plat", e);
+        }
+
+        return ingredients;
     }
 }
