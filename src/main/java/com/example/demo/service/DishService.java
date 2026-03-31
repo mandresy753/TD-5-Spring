@@ -58,12 +58,10 @@ public class DishService {
     public List<IngredientDTO> getIngredientsByDishWithFilters(
             int dishId, String ingredientName, BigDecimal ingredientPriceAround) {
 
-        List<IngredientDTO> ingredients =
-                dishRepository.findIngredientsByDishIdWithFilters(dishId, ingredientName, ingredientPriceAround);
-
-        if (ingredients == null) {
+        if (!dishRepository.existsDishById(dishId)) {
             throw new DishNotFoundException(dishId);
         }
-        return ingredients;
+
+        return dishRepository.findIngredientsByDishIdWithFilters(dishId, ingredientName, ingredientPriceAround);
     }
 }
