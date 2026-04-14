@@ -1,0 +1,9 @@
+openapi: 3.1.0
+info:
+  title: TD-5 Specification
+  description: Title
+  version: 1.0.0
+servers:
+  - url: 'https://localhost:8080'
+paths:
+  
