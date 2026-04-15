@@ -127,7 +127,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Dish'
+                type: string
+                example: "Dish ingredients updated"
 
         '400':
           description: missing request body
