@@ -18,6 +18,84 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Ingredient'
+                  
+  /ingredients/{id}:
+    get:
+      summary: get ingredient by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: ingredient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+
+        '404':
+          description: Ingredient not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Ingredient.id=8 is not found"
+
+  /ingredients/{id}/stock:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+
+        - name: at
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+
+        - name: unit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UnitType'  
+
+      responses:
+        '200':
+          description: stock value of ingredient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockValue'
+        
+        '400':
+          description: at or unit is undefined
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Either mandatory query parameter `at` or `unit` is not provided.'
+        
+        '404': 
+          description: ingredient not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Ingredient.id=8 is not found"
+
+        
+
+        
+
+
 
 components:
   schemas:
@@ -47,3 +125,22 @@ components:
         - MARINE
         - DAIRY
         - OTHER
+    
+    UnitType:
+      type: string
+      enum:
+        - PCS
+        - KG
+        - L
+    
+    StockValue:
+      type: object
+      required:
+        - quantity
+        - unit
+      properties:
+        quantity:
+          type: number
+          format: float
+        unit:
+          $ref: '#/components/schemas/UnitType'
