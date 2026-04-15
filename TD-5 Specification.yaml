@@ -207,7 +207,7 @@ components:
 
     Dish:
       type: object
-      required: true
+      required:
         - id
         - name
         - price
